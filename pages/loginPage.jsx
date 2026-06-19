@@ -2,13 +2,14 @@ import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { FcGoogle } from "react-icons/fc";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../src/lib/api";
 
 export default function loginPage(){
 
     const [email,setEmail]= useState("")
     const [password,setpassword]= useState("")
+    const navigate = useNavigate()
 
     function handleLogin(){
        api.post("/users/login",
@@ -21,15 +22,21 @@ export default function loginPage(){
 .then((res) => {
 
     toast.success("Login Successful")
-    console.log(res.data.token);
-    console.log(res.data.isAdmin);
-
+    
     localStorage.setItem("token",res.data.token)
+
+    if(res.data.isAdmin){
+        //window.location.href = "/admin"
+        navigate("/admin")
+    }else{
+        navigate("/")
+    }
 })
-.catch((err) => {
-    toast.success("Login faild")
-    console.log(err);
-});
+.catch((error) => {
+    console.log(error)
+    toast.error("Login failed")
+    
+})
     }
 
     return(
@@ -40,6 +47,7 @@ export default function loginPage(){
 
                 <label className="w-full  text-lg mt-5 text-secondary font-semibold">Email</label>
                 <input
+                value={email}
 
                 onChange={
                     (e)=>{
@@ -50,6 +58,7 @@ export default function loginPage(){
                 
                 <label className="w-full  text-lg mt-5 text-secondary font-semibold">Password</label>
                 <input
+                value={password}
 
                 onChange={
                     (e)=>{
