@@ -6,7 +6,7 @@ export default function ProductCard(props){
 
     return(
         <div className='bg-blue-300 '>
-            <img src={props.image}/>
+            <img src={props.images}/>
             <h1>{props.name}</h1>
             <p>{props.price}</p>
         </div>

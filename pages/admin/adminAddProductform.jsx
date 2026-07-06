@@ -2,6 +2,9 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import uploadMedia from "../../src/lib/uploadMedia";
+import { IoMdInformationCircleOutline } from "react-icons/io";
+import api from "../../src/lib/api";
+import Loading from "../../src/components/loading";
 
 export default function AddProductForm() {
     const [productId, setProductId] = useState("")
@@ -16,14 +19,30 @@ export default function AddProductForm() {
     const [category, setCategory] = useState("Laptop")
     const [brand, setBrand] = useState("")
     const [model, setModel] = useState("")
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
     async function handleSave(){
+        setLoading(true)
         const token = localStorage.getItem("token")
         if(token == null){
             toast.error("You are not logged in")
             navigate("/login")
             return
+        }
+        const productData ={
+            productId : productId,
+            name : name,
+            altNames :[],
+            description : description,
+            images : [],
+            price : price,
+            labelledPrice : labelledPrice,
+            stock : stock,
+            isAvailable : isAvailable,
+            category : category,
+            brand : brand,
+            model : model
         }
         try {
             const imageUploadPromises = []
@@ -32,19 +51,32 @@ export default function AddProductForm() {
 
             }
             console.log(imageUploadPromises)
-            const imageUrls = await Promise.all(imageUploadPromises)
+            productData.images = await Promise.all(imageUploadPromises)
+            productData.altNames = altNames.split(",")
 
+            const res = await api.post("/products", productData,
+                {
+                    headers: {
+                    Authorization: "Bearer " + token
+                    }
+                }
+            )
+            console.log(res)
+            toast.success("Product saved successfully")
 
+            navigate("/admin/products")
             
         } catch (error) {
             toast.error("Failed to save product")
             console.error(error)
+            setLoading(false)
         }
 
     }
 
   return (
     <div className="w-full max-h-full flex flex-wrap p-3 items-start gap-0 overflow-y-scroll">
+        {loading && <Loading />}
 
         <div className="w-full h-25 bg-white shadow-md rounded-md flex items-center justify-between p-4 mb-8">
         <h1 className="text-2xl font-semibold text-secondary">
@@ -66,7 +98,7 @@ export default function AddProductForm() {
             <input type="text" value={name} onChange={(e)=>setName(e.target.value)} className="w-full h-10 rounded-md border-2 border-gray-300 p-2 mb-4"></input>
         </div>
         <div className="w-[45%] flex flex-col p-2 h-25">
-            <label className="text-secondary text-lg font-semibold mb-2">Alternative Names</label>
+            <label className="text-secondary text-lg font-semibold mb-2 flex items-center gap-2">Alternative Names<span className="flex justify-center items-center h-fullitalic font-thin"><IoMdInformationCircleOutline />Comma-separated</span></label>
             <input type="text" value={altNames} onChange={(e)=>setAltNames(e.target.value)} className="w-full h-10 rounded-md border-2 border-gray-300 p-2 mb-4"></input>
         </div>
         <div className="w-full flex flex-col p-2">
